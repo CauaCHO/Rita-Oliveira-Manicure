@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#d9468f" />
+  <title>Agenda Manicure</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+  <header class="app-header">
+    <div class="brand">
+      <div class="logo"><i class="fa-solid fa-hand-sparkles"></i></div>
+      <div><h1 id="businessName">Studio Nails</h1><p id="subtitle">Agende seu horário de forma simples</p></div>
+    </div>
+  </header>
+  <main class="container">
+    <section class="hero">
+      <h2>Escolha seu horário 💅</h2>
+      <p>Veja a agenda, escolha um horário disponível e solicite seu atendimento. O agendamento só fica confirmado após retorno pelo WhatsApp.</p>
+    </section>
+    <div class="section-title">1. Escolha a data</div>
+    <section class="card">
+      <div class="field"><label for="dateInput">Data do atendimento</label><input id="dateInput" type="date" /></div>
+    </section>
+    <div class="section-title">2. Escolha o horário</div>
+    <section id="timeList" class="time-list"></section>
+  </main>
+  <div id="bookingModal" class="modal">
+    <div class="modal-content">
+      <div class="card-title"><h3>Solicitar agendamento</h3><button id="closeModal" class="btn btn-light" type="button"><i class="fa-solid fa-xmark"></i></button></div>
+      <p class="muted" id="selectedInfo"></p>
+      <div class="section-title">Escolha o serviço</div>
+      <div id="serviceList" class="service-list"></div>
+      <div class="grid grid-2">
+        <div class="field"><label for="clientName">Seu nome</label><input id="clientName" placeholder="Ex: Maria" /></div>
+        <div class="field"><label for="clientPhone">WhatsApp</label><input id="clientPhone" placeholder="(17) 99999-9999" inputmode="tel" /></div>
+      </div>
+      <div class="field"><label for="obs">Observação</label><textarea id="obs" placeholder="Ex: Quero esmalte vermelho"></textarea></div>
+      <div class="card" id="summaryBox" style="background:#fff7fb"></div>
+      <div class="btn-row" style="margin-top:12px"><button id="requestBooking" class="btn btn-primary btn-full"><i class="fa-solid fa-calendar-check"></i> Solicitar horário</button></div>
+    </div>
+  </div>
+  <nav class="bottom-nav public-only">
+    <a class="active" href="index.html"><i class="fa-solid fa-calendar-days"></i>Agendar</a>
+    <a href="admin/login.html"><i class="fa-solid fa-lock"></i>Admin</a>
+  </nav>
+  <script type="module" src="js/agenda-publica.js"></script>
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('service-worker.js').catch(()=>{});}</script>
+</body>
+</html>

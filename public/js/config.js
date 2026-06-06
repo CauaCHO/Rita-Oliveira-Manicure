@@ -1,0 +1,8 @@
+import { Store } from './storage.js';
+import { requireLogin, adminLayout } from './admin-common.js';
+import { $, toast } from './utils.js';
+requireLogin();
+const s=Store.getSettings();
+adminLayout('config', `<div class="card-title"><div><h2 style="margin:0">Configurações</h2><p class="muted">Personalize o nome da agenda e a senha do painel.</p></div></div><section class="card"><div class="field"><label>Nome do estúdio</label><input id="businessName" value="${s.businessName||''}"></div><div class="field"><label>Frase da página pública</label><input id="subtitle" value="${s.subtitle||''}"></div><div class="field"><label>WhatsApp da manicure</label><input id="ownerWhatsapp" value="${s.ownerWhatsapp||''}" placeholder="17999999999"></div><div class="field"><label>Senha do painel</label><input id="adminPassword" value="${s.adminPassword||''}"></div><button id="save" class="btn btn-primary">Salvar configurações</button><button id="reset" class="btn btn-danger" style="margin-left:8px">Resetar demonstração</button></section><section class="card" style="margin-top:14px"><h3>Próximo passo: Firebase</h3><p class="muted">A versão atual usa localStorage. Para usar Firebase, substitua as funções do arquivo <b>js/storage.js</b> pelas chamadas do Firebase Realtime Database.</p></section>`);
+$('#save').onclick=()=>{Store.updateSettings({businessName:$('#businessName').value.trim(),subtitle:$('#subtitle').value.trim(),ownerWhatsapp:$('#ownerWhatsapp').value.trim(),adminPassword:$('#adminPassword').value.trim()||'1234'});toast('Configurações salvas.');};
+$('#reset').onclick=()=>{if(confirm('Apagar os dados da demonstração?')){Store.resetDemo();toast('Demonstração resetada.');}};
