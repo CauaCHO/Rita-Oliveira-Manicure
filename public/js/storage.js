@@ -1,6 +1,8 @@
 import { uid, todayISO } from './utils.js';
+import { db as firebaseDb, ref, set, onValue } from './firebase.js';
 
 const KEY = 'agenda_manicure_db_v1';
+const FIREBASE_PATH = 'app';
 
 const seed = {
   settings: {
@@ -19,23 +21,83 @@ const seed = {
   clients: []
 };
 
-function load() {
-  const raw = localStorage.getItem(KEY);
-  if (!raw) {
-    localStorage.setItem(KEY, JSON.stringify(seed));
-    return structuredClone(seed);
-  }
-  try { return JSON.parse(raw); } catch { return structuredClone(seed); }
+let cache = null;
+let syncingFromFirebase = false;
+
+function clone(data) {
+  return JSON.parse(JSON.stringify(data));
 }
 
-function save(db) {
-  localStorage.setItem(KEY, JSON.stringify(db));
+function normalize(db) {
+  return {
+    settings: { ...seed.settings, ...(db?.settings || {}) },
+    services: Array.isArray(db?.services) ? db.services : clone(seed.services),
+    appointments: Array.isArray(db?.appointments) ? db.appointments : [],
+    clients: Array.isArray(db?.clients) ? db.clients : []
+  };
+}
+
+function loadLocal() {
+  const raw = localStorage.getItem(KEY);
+  if (!raw) {
+    const initial = clone(seed);
+    localStorage.setItem(KEY, JSON.stringify(initial));
+    return initial;
+  }
+  try {
+    return normalize(JSON.parse(raw));
+  } catch {
+    return clone(seed);
+  }
+}
+
+function persistLocal(db) {
+  cache = normalize(db);
+  localStorage.setItem(KEY, JSON.stringify(cache));
   window.dispatchEvent(new CustomEvent('db:update'));
 }
 
+async function persistFirebase(db) {
+  if (syncingFromFirebase) return;
+  try {
+    await set(ref(firebaseDb, FIREBASE_PATH), normalize(db));
+  } catch (error) {
+    console.error('Erro ao salvar no Firebase:', error);
+  }
+}
+
+function load() {
+  if (!cache) cache = loadLocal();
+  return clone(cache);
+}
+
+function save(nextDb) {
+  const normalized = normalize(nextDb);
+  persistLocal(normalized);
+  persistFirebase(normalized);
+}
+
+function startFirebaseSync() {
+  const appRef = ref(firebaseDb, FIREBASE_PATH);
+  onValue(appRef, (snapshot) => {
+    syncingFromFirebase = true;
+    if (snapshot.exists()) {
+      persistLocal(snapshot.val());
+    } else {
+      const local = loadLocal();
+      set(appRef, normalize(local)).catch((error) => console.error('Erro ao criar base no Firebase:', error));
+    }
+    syncingFromFirebase = false;
+  }, (error) => {
+    console.error('Erro ao ler Firebase:', error);
+  });
+}
+
+startFirebaseSync();
+
 export const Store = {
   all() { return load(); },
-  resetDemo() { save(structuredClone(seed)); },
+  resetDemo() { save(clone(seed)); },
   getSettings() { return load().settings; },
   updateSettings(settings) {
     const db = load();
