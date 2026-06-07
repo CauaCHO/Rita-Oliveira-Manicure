@@ -6,6 +6,7 @@ export function logout(){sessionStorage.removeItem('agenda_admin_logged'); locat
 export function adminLayout(active, content){
   const nav = [
     ['agenda.html','calendar-days','Agenda','agenda'],
+    ['solicitacoes.html','bell','Solicitações','solicitacoes'],
     ['servicos.html','spa','Serviços','servicos'],
     ['clientes.html','users','Clientes','clientes'],
     ['relatorios.html','chart-line','Relatórios','relatorios'],
