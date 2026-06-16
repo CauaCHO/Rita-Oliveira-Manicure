@@ -1,0 +1,1 @@
+A funcao stylishConfirm em utils.js substitui confirmacoes nativas.
