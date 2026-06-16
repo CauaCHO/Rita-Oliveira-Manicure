@@ -39,6 +39,47 @@ export function toast(message) {
   window.__toastTimer = setTimeout(() => { el.style.display = 'none'; }, 2800);
 }
 
+export function stylishConfirm({
+  title = 'Confirmar ação',
+  message = 'Deseja continuar?',
+  confirmText = 'Confirmar',
+  cancelText = 'Cancelar',
+  danger = false
+} = {}) {
+  return new Promise(resolve => {
+    const old = document.getElementById('confirmModalGlobal');
+    if (old) old.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'confirmModalGlobal';
+    modal.className = 'modal open';
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width:420px">
+        <div class="card-title">
+          <div>
+            <h3 style="margin:0">${title}</h3>
+            <p class="muted" style="margin:8px 0 0">${message}</p>
+          </div>
+          <button type="button" class="btn btn-light" data-cancel><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="btn-row" style="justify-content:flex-end;margin-top:18px">
+          <button type="button" class="btn btn-light" data-cancel>${cancelText}</button>
+          <button type="button" class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-confirm>${confirmText}</button>
+        </div>
+      </div>`;
+
+    const close = result => {
+      modal.remove();
+      resolve(result);
+    };
+
+    modal.querySelectorAll('[data-cancel]').forEach(btn => btn.onclick = () => close(false));
+    modal.querySelector('[data-confirm]').onclick = () => close(true);
+    modal.onclick = event => { if (event.target === modal) close(false); };
+    document.body.appendChild(modal);
+  });
+}
+
 export function statusLabel(status) {
   const labels = {
     disponivel: 'Disponível',
