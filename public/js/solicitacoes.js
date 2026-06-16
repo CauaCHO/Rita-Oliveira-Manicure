@@ -1,6 +1,6 @@
 import { Store } from './storage.js';
 import { requireLogin, adminLayout } from './admin-common.js';
-import { $, formatDateBR, money, toast, whatsappLink } from './utils.js';
+import { $, formatDateBR, money, toast, whatsappLink, stylishConfirm } from './utils.js';
 
 requireLogin();
 
@@ -43,12 +43,17 @@ function render(){
       render();
     };
 
-    item.querySelector('[data-act="no"]').onclick = () => {
-      if(confirm('Negar essa solicitação?')){
-        Store.updateAppointment(ap.id, { statusAgenda: 'cancelado' });
-        toast('Solicitação negada.');
-        render();
-      }
+    item.querySelector('[data-act="no"]').onclick = async () => {
+      const accepted = await stylishConfirm({
+        title: 'Negar solicitação',
+        message: `Deseja negar o horário de ${ap.clienteNome || 'cliente'} em ${formatDateBR(ap.data)} às ${ap.hora}?`,
+        confirmText: 'Negar solicitação',
+        danger: true
+      });
+      if(!accepted) return;
+      Store.updateAppointment(ap.id, { statusAgenda: 'cancelado' });
+      toast('Solicitação negada.');
+      render();
     };
 
     box.appendChild(item);
