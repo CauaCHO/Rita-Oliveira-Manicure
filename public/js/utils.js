@@ -1,6 +1,100 @@
 export const $ = (selector, root = document) => root.querySelector(selector);
 export const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 
+function installGlassSpacingFix(){
+  if (document.getElementById('glassSpacingFix')) return;
+  const style = document.createElement('style');
+  style.id = 'glassSpacingFix';
+  style.textContent = `
+    .admin-main > .card,
+    .admin-main > .grid,
+    .admin-main > .table-list,
+    .admin-main > section.card,
+    .container > .card,
+    .container > .hero,
+    .container > .grid,
+    .container > .table-list,
+    .container > section.card{
+      margin-bottom:18px;
+    }
+
+    .grid{
+      gap:18px !important;
+    }
+
+    .table-list{
+      gap:16px !important;
+    }
+
+    .card .table-list,
+    .card .grid,
+    .card > .list-item + .list-item,
+    #services .list-item + .list-item,
+    #clients .list-item + .list-item,
+    #appointments .list-item + .list-item,
+    #clientList .list-item + .list-item,
+    #requests .list-item + .list-item{
+      margin-top:14px;
+    }
+
+    .card{
+      margin-bottom:18px;
+    }
+
+    .list-item{
+      margin-bottom:0;
+    }
+
+    .section-title{
+      margin-top:28px !important;
+      margin-bottom:12px !important;
+    }
+
+    .modal-content .field + .field,
+    .modal-content .grid + .field,
+    .modal-content .field + .grid,
+    .modal-content .grid + .grid{
+      margin-top:12px;
+    }
+
+    @media(max-width:760px){
+      .container,
+      .admin-main{
+        padding-left:22px !important;
+        padding-right:22px !important;
+      }
+
+      .card,
+      .hero,
+      .list-item,
+      .time-item,
+      .service-option{
+        margin-bottom:16px;
+      }
+
+      .grid,
+      .table-list,
+      .time-list,
+      .service-list{
+        gap:18px !important;
+      }
+
+      .bottom-nav{
+        left:22px !important;
+        right:22px !important;
+        bottom:22px !important;
+      }
+
+      .admin-main{
+        padding-bottom:125px !important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+installGlassSpacingFix();
+
 export function uid(prefix = 'id') {
   return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
