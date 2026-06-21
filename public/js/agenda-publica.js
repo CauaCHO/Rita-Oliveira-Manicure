@@ -11,18 +11,22 @@ $('#subtitle').textContent = settings.subtitle || 'Agende seu horário de forma 
 $('#dateInput').value = selectedDate;
 $('#dateInput').min = todayISO();
 
+function unavailableEntry(hour) {
+  return Store.listDayEntries(selectedDate).find(a => a.hora === hour && ['aguardando_confirmacao','confirmado','ocupado','folga','bloqueado','concluido'].includes(a.statusAgenda));
+}
+
 function renderTimes(){
   selectedDate = $('#dateInput').value;
-  const appointments = Store.listAppointments({ date:selectedDate });
   const container = $('#timeList');
   container.innerHTML = '';
   HOURS.forEach(hour => {
-    const ap = appointments.find(a => a.hora === hour && ['aguardando_confirmacao','confirmado','ocupado','folga'].includes(a.statusAgenda));
+    const ap = unavailableEntry(hour);
     const status = ap?.statusAgenda || 'disponivel';
+    const isBlock = ap?.itemKind === 'block';
     const item = document.createElement('div');
     item.className = 'time-item';
     item.innerHTML = `
-      <div class="time-main"><b>${hour}</b><span>${status === 'disponivel' ? 'Horário livre para solicitar' : 'Horário indisponível'}</span></div>
+      <div class="time-main"><b>${hour}</b><span>${status === 'disponivel' ? 'Horário livre para solicitar' : (isBlock ? 'Horário bloqueado pela manicure' : 'Horário indisponível')}</span></div>
       <div class="btn-row"><span class="status ${status}">${statusLabel(status)}</span>${status === 'disponivel' ? '<button class="btn btn-primary">Agendar</button>' : ''}</div>
     `;
     if(status === 'disponivel') item.querySelector('button').onclick = () => openBooking(hour);
@@ -74,8 +78,20 @@ function updateSummary(){
   `;
 }
 
-$('#closeModal').onclick = () => $('#bookingModal').classList.remove('open');
-$('#bookingModal').onclick = (e) => { if(e.target.id === 'bookingModal') $('#bookingModal').classList.remove('open'); };
+function closeBooking(){
+  $('#bookingModal').classList.remove('open');
+}
+
+function syncOpenBooking(){
+  renderTimes();
+  if($('#bookingModal').classList.contains('open') && selectedHour && Store.hasTimeConflict(selectedDate, selectedHour)){
+    closeBooking();
+    toast('Esse horário acabou de ser preenchido. Escolha outro horário disponível.');
+  }
+}
+
+$('#closeModal').onclick = closeBooking;
+$('#bookingModal').onclick = (e) => { if(e.target.id === 'bookingModal') closeBooking(); };
 $('#dateInput').onchange = renderTimes;
 
 $('#requestBooking').onclick = () => {
@@ -83,6 +99,11 @@ $('#requestBooking').onclick = () => {
   const telefone = $('#clientPhone').value.trim();
   if(!selectedService) return toast('Escolha um serviço.');
   if(!nome || !telefone) return toast('Informe seu nome e WhatsApp.');
+  if(Store.hasTimeConflict(selectedDate, selectedHour)){
+    closeBooking();
+    renderTimes();
+    return toast('Esse horário acabou de ser preenchido. Escolha outro horário.');
+  }
   try{
     Store.saveAppointment({
       data:selectedDate,
@@ -98,13 +119,18 @@ $('#requestBooking').onclick = () => {
       observacao:$('#obs').value.trim(),
       origem:'cliente'
     });
-    $('#bookingModal').classList.remove('open');
+    closeBooking();
     renderTimes();
     toast('Solicitação enviada! Aguarde confirmação pelo WhatsApp.');
   }catch(err){
+    closeBooking();
     toast(err.message || 'Não foi possível agendar.');
     renderTimes();
   }
 };
+
+window.addEventListener('db:update', syncOpenBooking);
+document.addEventListener('visibilitychange', () => { if(!document.hidden) syncOpenBooking(); });
+window.addEventListener('focus', syncOpenBooking);
 
 renderTimes();
