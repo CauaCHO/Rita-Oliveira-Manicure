@@ -1,14 +1,31 @@
 import { Store } from './storage.js';
-import { $, todayISO, money, toast, HOURS } from './utils.js';
+import { $, todayISO, money, toast } from './utils.js';
 import { PACKAGE_ITEMS, getPackageSelections, calculatePackageValue, savePackageAppointments } from './pacote-utils.js';
+import { getAgendaHours } from './horarios-utils.js';
+
+function optionsForDate(date){
+  const hours = getAgendaHours(Store, date || todayISO());
+  return hours.map(h => `<option value="${h}">${h}</option>`).join('');
+}
+
+function refreshHourSelect(itemKey){
+  const date = document.querySelector(`[data-package-date="${itemKey}"]`)?.value || todayISO();
+  const hour = document.querySelector(`[data-package-hour="${itemKey}"]`);
+  const old = hour?.value;
+  const hours = getAgendaHours(Store, date);
+  if(hour){
+    hour.innerHTML = hours.length ? optionsForDate(date) : '<option value="">Sem horários</option>';
+    if(old && hours.includes(old)) hour.value = old;
+  }
+}
 
 function rows(){
-  return PACKAGE_ITEMS.map((item, index) => `
+  return PACKAGE_ITEMS.map(item => `
     <section class="card" style="margin-bottom:12px">
       <h3 style="margin:0 0 10px">${item.label}</h3>
       <div class="grid grid-2">
         <div class="field"><label>Data</label><input type="date" min="${todayISO()}" data-package-date="${item.key}"></div>
-        <div class="field"><label>Horário</label><select data-package-hour="${item.key}">${HOURS.map((h, i) => `<option value="${h}" ${i === index ? 'selected' : ''}>${h}</option>`).join('')}</select></div>
+        <div class="field"><label>Horário</label><select data-package-hour="${item.key}">${optionsForDate(todayISO())}</select></div>
       </div>
     </section>
   `).join('');
@@ -54,21 +71,21 @@ function openModal(){
   $('#adminPackageValue').value = calculatePackageValue(Store);
   $('#adminPackagePayment').value = 'pago';
   $('#adminPackageObs').value = '';
-  PACKAGE_ITEMS.forEach((item, index) => {
+  PACKAGE_ITEMS.forEach(item => {
     const date = document.querySelector(`[data-package-date="${item.key}"]`);
-    const hour = document.querySelector(`[data-package-hour="${item.key}"]`);
-    if(date) date.value = todayISO();
-    if(hour) hour.value = HOURS[index % HOURS.length];
+    if(date) date.value = $('#dateInput')?.value || todayISO();
+    refreshHourSelect(item.key);
   });
   $('#adminPackageModalNew').classList.add('open');
 }
 
-function closeModal(){
-  $('#adminPackageModalNew').classList.remove('open');
-}
+function closeModal(){ $('#adminPackageModalNew').classList.remove('open'); }
 
 function setup(){
   createModal();
+  PACKAGE_ITEMS.forEach(item => {
+    document.querySelector(`[data-package-date="${item.key}"]`)?.addEventListener('change', () => refreshHourSelect(item.key));
+  });
   $('#closeAdminPackageNew').onclick = closeModal;
   $('#adminPackageModalNew').onclick = event => { if(event.target.id === 'adminPackageModalNew') closeModal(); };
   $('#saveAdminPackageNew').onclick = () => {
