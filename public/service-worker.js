@@ -1,4 +1,4 @@
-const CACHE_NAME = 'agenda-manicure-v2';
+const CACHE_NAME = 'agenda-manicure-v13';
 
 self.addEventListener('install', () => {
   self.skipWaiting();
@@ -14,5 +14,5 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
-  event.respondWith(fetch(event.request));
+  event.respondWith(fetch(event.request, { cache: 'no-store' }).catch(() => caches.match(event.request)));
 });
