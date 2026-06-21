@@ -1,5 +1,5 @@
 import { Store } from './storage.js';
-import { $, todayISO, toast, HOURS } from './utils.js';
+import { $, todayISO, toast } from './utils.js';
 import { getAgendaHours, addDateSlot, addWeeklySlot, removeDateSlot, removeWeeklySlot, WEEKDAYS, getWeekday, weekdayLabel } from './horarios-utils.js';
 
 function optionHours(hours){
@@ -84,8 +84,8 @@ function save(){
   if(!date) return toast('Escolha a data de referência.');
   if(!hora) return toast('Informe um horário.');
 
-  if(action === 'remove' && scope === 'date' && Store.hasTimeConflict(date, hora)){
-    return toast('Esse horário possui atendimento ou bloqueio. Remova o registro antes.');
+  if(action === 'remove' && Store.hasTimeConflict(date, hora)){
+    return toast('Esse horário possui atendimento ou bloqueio nessa data. Remova o registro antes.');
   }
 
   if(action === 'add' && scope === 'date') addDateSlot(Store, date, hora);
