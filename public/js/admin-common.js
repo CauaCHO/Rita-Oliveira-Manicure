@@ -52,8 +52,17 @@ export function adminLayout(active, content){
     ['solicitacoes.html','bell','Solicitações','solicitacoes'],
     ['servicos.html','spa','Serviços','servicos'],
     ['clientes.html','users','Clientes','clientes'],
+    ['whatsapp.html','whatsapp','WhatsApp','whatsapp'],
     ['relatorios.html','chart-line','Relatórios','relatorios'],
     ['config.html','gear','Config.','config']
+  ];
+
+  const mobileNav = [
+    ['agenda.html','calendar-days','Agenda','agenda'],
+    ['solicitacoes.html','bell','Solicitações','solicitacoes'],
+    ['servicos.html','spa','Serviços','servicos'],
+    ['whatsapp.html','whatsapp','WhatsApp','whatsapp'],
+    ['relatorios.html','chart-line','Relatórios','relatorios']
   ];
 
   const settings = Store.getSettings();
@@ -63,11 +72,11 @@ export function adminLayout(active, content){
   <div class="admin-shell">
     <aside class="sidebar">
       <div class="brand"><div class="logo"><i class="fa-solid fa-hand-sparkles"></i></div><div><h1>${settings.businessName}</h1><p>Painel admin</p></div></div>
-      <nav class="side-nav">${nav.map(n=>`<a class="${active===n[3]?'active':''}" href="${n[0]}"><i class="fa-solid fa-${n[1]}"></i> ${n[2]}</a>`).join('')}<a id="logoutBtn" href="#"><i class="fa-solid fa-door-open"></i> Sair</a></nav>
+      <nav class="side-nav">${nav.map(n=>`<a class="${active===n[3]?'active':''}" href="${n[0]}"><i class="fa-${n[1] === 'whatsapp' ? 'brands' : 'solid'} fa-${n[1]}"></i> ${n[2]}</a>`).join('')}<a id="logoutBtn" href="#"><i class="fa-solid fa-door-open"></i> Sair</a></nav>
     </aside>
     <main class="admin-main">${content}</main>
   </div>
-  <nav class="bottom-nav mobile-admin-nav">${nav.slice(0,5).map(n=>`<a class="${active===n[3]?'active':''}" href="${n[0]}"><i class="fa-solid fa-${n[1]}"></i>${n[2]}</a>`).join('')}</nav>`;
+  <nav class="bottom-nav mobile-admin-nav">${mobileNav.map(n=>`<a class="${active===n[3]?'active':''}" href="${n[0]}"><i class="fa-${n[1] === 'whatsapp' ? 'brands' : 'solid'} fa-${n[1]}"></i>${n[2]}</a>`).join('')}</nav>`;
 
   const btn = document.getElementById('logoutBtn');
   if(btn) btn.onclick = logout;
