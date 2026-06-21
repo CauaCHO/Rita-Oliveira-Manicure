@@ -16,6 +16,11 @@ function cleanText(value) {
     .toLowerCase();
 }
 
+function isPackageService(service) {
+  const name = cleanText(service?.nome);
+  return service?.id === 'srv_pacote_mensal' || service?.categoria === 'pacote_mensal' || name.includes('pacote mensal');
+}
+
 function weekKey(dateISO) {
   const date = new Date(`${dateISO}T12:00:00`);
   const start = new Date(date);
@@ -24,7 +29,7 @@ function weekKey(dateISO) {
 }
 
 export function findPackageService(Store, kind) {
-  const services = Store.listServices({ onlyPublic: false }).filter(s => s.ativo !== false);
+  const services = Store.listServices({ onlyPublic: false }).filter(s => s.ativo !== false && !isPackageService(s));
   const scored = services.map(service => {
     const name = cleanText(service.nome);
     let score = 0;
@@ -52,7 +57,15 @@ export function getPackageSelections(root = document) {
   }));
 }
 
+export function getPackageValueService(Store) {
+  return typeof Store.getPackageService === 'function'
+    ? Store.getPackageService()
+    : Store.listServices({ onlyPublic: false }).find(isPackageService);
+}
+
 export function calculatePackageValue(Store) {
+  const packageService = getPackageValueService(Store);
+  if (packageService) return Number(packageService.preco || 0);
   const mao = findPackageService(Store, 'mao');
   const pe = findPackageService(Store, 'pe');
   return Number(mao?.preco || 0) * 4 + Number(pe?.preco || 0) * 2;
