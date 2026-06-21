@@ -1,0 +1,131 @@
+@media (max-width: 760px) {
+  html, body {
+    width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  body {
+    padding-bottom: 150px !important;
+  }
+
+  .app-header {
+    padding: 22px 24px 0 !important;
+  }
+
+  .container,
+  .admin-main {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 22px 24px 150px !important;
+    display: block !important;
+  }
+
+  .container > *,
+  .admin-main > * {
+    margin-top: 0 !important;
+    margin-bottom: 22px !important;
+  }
+
+  .container > *:last-child,
+  .admin-main > *:last-child {
+    margin-bottom: 0 !important;
+  }
+
+  .card,
+  .hero,
+  .empty,
+  .time-item,
+  .service-option,
+  .list-item {
+    width: 100% !important;
+    margin: 0 0 18px 0 !important;
+  }
+
+  .grid,
+  .grid-2,
+  .grid-3,
+  .table-list,
+  .time-list,
+  .service-list {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 18px !important;
+  }
+
+  .grid > *,
+  .grid-2 > *,
+  .grid-3 > *,
+  .table-list > *,
+  .time-list > *,
+  .service-list > * {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  #agendaList,
+  #requests,
+  #clientList,
+  #services,
+  #clients,
+  #appointments {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 18px !important;
+  }
+
+  #agendaList > .list-item,
+  #requests > .list-item,
+  #clientList > .list-item,
+  #services > .list-item,
+  #clients > .list-item,
+  #appointments > .list-item {
+    margin: 0 !important;
+  }
+
+  .card #services,
+  .card #clients,
+  .card #appointments,
+  .card .table-list,
+  .card .grid,
+  .card .service-list,
+  .card .time-list {
+    margin-top: 14px !important;
+  }
+
+  .card > h3,
+  .section-title {
+    margin-top: 0 !important;
+    margin-bottom: 14px !important;
+  }
+
+  .field {
+    margin: 0 0 18px 0 !important;
+  }
+
+  .modal-content .field {
+    margin-bottom: 16px !important;
+  }
+
+  .modal-content .grid,
+  .modal-content .grid-2,
+  .modal-content .grid-3 {
+    gap: 0 !important;
+  }
+
+  .btn-row {
+    gap: 12px !important;
+  }
+
+  .bottom-nav {
+    left: 20px !important;
+    right: 20px !important;
+    bottom: 22px !important;
+    width: auto !important;
+    margin: 0 !important;
+  }
+
+  .bottom-nav a {
+    min-width: 0 !important;
+  }
+}
