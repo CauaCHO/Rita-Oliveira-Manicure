@@ -4,6 +4,8 @@ import { db as firebaseDb, ref, set, onValue } from './firebase.js';
 const KEY = 'agenda_manicure_db_v1';
 const FIREBASE_PATH = 'app';
 
+const PACKAGE_SERVICE = { id: 'srv_pacote_mensal', nome: 'Pacote mensal', preco: 210, duracaoMinutos: 0, descricao: 'Pacote com 4 mãos e 2 pés', categoria: 'pacote_mensal', ativo: true, publico: false };
+
 const seed = {
   settings: {
     businessName: 'Studio Nails',
@@ -15,7 +17,8 @@ const seed = {
     { id: 'srv_mao', nome: 'Mão', preco: 25, duracaoMinutos: 60, descricao: 'Esmaltação simples', categoria: 'servico', ativo: true, publico: true },
     { id: 'srv_pe', nome: 'Pé', preco: 30, duracaoMinutos: 60, descricao: 'Cuidado e esmaltação dos pés', categoria: 'servico', ativo: true, publico: true },
     { id: 'srv_pe_mao', nome: 'Pé e mão', preco: 50, duracaoMinutos: 60, descricao: 'Combo completo', categoria: 'combo', ativo: true, publico: true },
-    { id: 'srv_alongamento', nome: 'Alongamento', preco: 120, duracaoMinutos: 120, descricao: 'Alongamento de unhas', categoria: 'servico', ativo: true, publico: true }
+    { id: 'srv_alongamento', nome: 'Alongamento', preco: 120, duracaoMinutos: 120, descricao: 'Alongamento de unhas', categoria: 'servico', ativo: true, publico: true },
+    PACKAGE_SERVICE
   ],
   appointments: [],
   blocks: [],
@@ -31,6 +34,13 @@ function isBlockStatus(status) { return ['folga','ocupado','bloqueado'].includes
 function isRealAppointment(a) { return !isBlockStatus(a?.statusAgenda); }
 function isMoneyAppointment(a) { return isRealAppointment(a) && a?.statusPagamento !== 'nao_cobrado' && a?.valorCobravel !== false && a?.statusAgenda !== 'cancelado'; }
 function clientKey(nome, telefone) { const tel = phone(telefone); return tel || `nome:${String(nome || '').trim().toLowerCase()}`; }
+function isPackageService(s) { return s?.id === PACKAGE_SERVICE.id || s?.categoria === 'pacote_mensal' || String(s?.nome || '').toLowerCase().includes('pacote mensal'); }
+
+function normalizeServices(services) {
+  const list = Array.isArray(services) ? services : clone(seed.services);
+  const hasPackage = list.some(isPackageService);
+  return hasPackage ? list : [...list, clone(PACKAGE_SERVICE)];
+}
 
 function normalizeBlock(b) {
   return {
@@ -76,7 +86,7 @@ function normalize(db) {
 
   return {
     settings: { ...seed.settings, ...(db?.settings || {}) },
-    services: Array.isArray(db?.services) ? db.services : clone(seed.services),
+    services: normalizeServices(db?.services),
     appointments,
     blocks,
     clients: Array.isArray(db?.clients) ? db.clients.map(c => ({ ...c, telefone: phone(c.telefone || '') })) : []
@@ -127,17 +137,20 @@ export const Store = {
   updateSettings(settings) { const db = load(); db.settings = { ...db.settings, ...settings }; save(db); },
   listServices({ onlyPublic = false } = {}) {
     let services = load().services || [];
-    if (onlyPublic) services = services.filter(s => s.ativo && s.publico);
+    if (onlyPublic) services = services.filter(s => s.ativo && s.publico && !isPackageService(s));
     return services.sort((a,b) => String(a.nome).localeCompare(String(b.nome)));
   },
   getService(id) { return (load().services || []).find(s => s.id === id); },
+  getPackageService() { return (load().services || []).find(isPackageService) || PACKAGE_SERVICE; },
   saveService(data) {
     const db = load();
-    if (data.id) db.services = db.services.map(s => s.id === data.id ? { ...s, ...data } : s);
-    else db.services.push({ ...data, id: uid('srv'), ativo: true, publico: true });
+    const next = { ...data };
+    const exists = next.id ? db.services.some(s => s.id === next.id) : false;
+    if (next.id && exists) db.services = db.services.map(s => s.id === next.id ? { ...s, ...next } : s);
+    else db.services.push({ ...next, id: next.id || uid('srv'), ativo: next.ativo !== false, publico: !!next.publico });
     save(db);
   },
-  deleteService(id) { const db = load(); db.services = db.services.filter(s => s.id !== id); save(db); },
+  deleteService(id) { const db = load(); db.services = db.services.filter(s => s.id !== id && s.id !== PACKAGE_SERVICE.id); save(db); },
   listAppointments(filters = {}) {
     let items = (load().appointments || []).filter(isRealAppointment);
     if (filters.date) items = items.filter(a => a.data === filters.date);
