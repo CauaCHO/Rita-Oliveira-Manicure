@@ -24,11 +24,11 @@ function createActionModal(){
           <i class="fa-solid fa-calendar-plus"></i>
         </button>
         <button id="actionBreak" class="list-item" type="button" style="width:100%;text-align:left;border:0;cursor:pointer">
-          <div><h4>Adicionar folga ou bloqueio</h4><p>Bloquear um dia inteiro ou apenas um intervalo de horários.</p></div>
+          <div><h4>Adicionar folga ou bloqueio</h4><p>Bloqueia horários sem entrar no histórico, lucro ou total de atendimentos.</p></div>
           <i class="fa-solid fa-ban"></i>
         </button>
         <button id="actionPackage" class="list-item" type="button" style="width:100%;text-align:left;border:0;cursor:pointer">
-          <div><h4>Pacote mensal</h4><p>Criar automaticamente 4 mãos e 2 pés no mês.</p></div>
+          <div><h4>Pacote mensal</h4><p>Próxima etapa: selecionar 4 mãos e 2 pés separadamente.</p></div>
           <i class="fa-solid fa-box"></i>
         </button>
       </div>
