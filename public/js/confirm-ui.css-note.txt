@@ -1,1 +1,0 @@
-O modal usa as classes existentes modal, modal-content, btn e card-title.
