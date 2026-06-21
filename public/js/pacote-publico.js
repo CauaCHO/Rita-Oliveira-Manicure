@@ -1,6 +1,23 @@
 import { Store } from './storage.js';
-import { $, todayISO, money, toast, HOURS } from './utils.js';
+import { $, todayISO, money, toast } from './utils.js';
 import { PACKAGE_ITEMS, getPackageSelections, calculatePackageValue, savePackageAppointments } from './pacote-utils.js';
+import { getAgendaHours } from './horarios-utils.js';
+
+function optionsForDate(date){
+  const hours = getAgendaHours(Store, date || todayISO());
+  return hours.map(h => `<option value="${h}">${h}</option>`).join('');
+}
+
+function refreshHourSelect(itemKey){
+  const date = document.querySelector(`[data-package-date="${itemKey}"]`)?.value || todayISO();
+  const hour = document.querySelector(`[data-package-hour="${itemKey}"]`);
+  const old = hour?.value;
+  const hours = getAgendaHours(Store, date);
+  if(hour){
+    hour.innerHTML = hours.length ? optionsForDate(date) : '<option value="">Sem horários</option>';
+    if(old && hours.includes(old)) hour.value = old;
+  }
+}
 
 function packageRows(){
   return PACKAGE_ITEMS.map(item => `
@@ -8,7 +25,7 @@ function packageRows(){
       <h3 style="margin:0 0 10px">${item.label}</h3>
       <div class="grid grid-2">
         <div class="field"><label>Data</label><input type="date" min="${todayISO()}" data-package-date="${item.key}"></div>
-        <div class="field"><label>Horário</label><select data-package-hour="${item.key}">${HOURS.map(h => `<option value="${h}">${h}</option>`).join('')}</select></div>
+        <div class="field"><label>Horário</label><select data-package-hour="${item.key}">${optionsForDate(todayISO())}</select></div>
       </div>
     </section>
   `).join('');
@@ -62,21 +79,21 @@ function createPackageUI(){
 
 function openPackage(){
   $('#packageValue').textContent = money(calculatePackageValue(Store));
-  PACKAGE_ITEMS.forEach((item, index) => {
+  PACKAGE_ITEMS.forEach(item => {
     const date = document.querySelector(`[data-package-date="${item.key}"]`);
-    const hour = document.querySelector(`[data-package-hour="${item.key}"]`);
     if(date && !date.value) date.value = todayISO();
-    if(hour && !hour.value) hour.value = HOURS[index % HOURS.length];
+    refreshHourSelect(item.key);
   });
   $('#packagePublicModal').classList.add('open');
 }
 
-function closePackage(){
-  $('#packagePublicModal').classList.remove('open');
-}
+function closePackage(){ $('#packagePublicModal').classList.remove('open'); }
 
 function setup(){
   createPackageUI();
+  PACKAGE_ITEMS.forEach(item => {
+    document.querySelector(`[data-package-date="${item.key}"]`)?.addEventListener('change', () => refreshHourSelect(item.key));
+  });
   $('#openPackagePublic').onclick = openPackage;
   $('#closePackagePublic').onclick = closePackage;
   $('#packagePublicModal').onclick = event => { if(event.target.id === 'packagePublicModal') closePackage(); };
@@ -108,6 +125,7 @@ function setup(){
   window.addEventListener('db:update', () => {
     if($('#packagePublicModal')?.classList.contains('open')){
       $('#packageValue').textContent = money(calculatePackageValue(Store));
+      PACKAGE_ITEMS.forEach(item => refreshHourSelect(item.key));
     }
   });
 }
