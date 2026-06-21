@@ -15,16 +15,18 @@ function sortedUnique(hours) {
 }
 
 export function getWeekday(dateISO) {
-  return new Date(`${dateISO}T12:00:00`).getDay();
+  const safeDate = dateISO || new Date().toISOString().slice(0, 10);
+  return new Date(`${safeDate}T12:00:00`).getDay();
 }
 
 export function getAgendaHours(Store, dateISO) {
-  const settings = Store.getSettings();
-  const weekday = getWeekday(dateISO);
+  const safeDate = dateISO || new Date().toISOString().slice(0, 10);
+  const settings = Store.getSettings() || {};
+  const weekday = getWeekday(safeDate);
   let hours = Array.isArray(settings.defaultHours) && settings.defaultHours.length ? [...settings.defaultHours] : [...HOURS];
 
   (settings.dateSlots || [])
-    .filter(slot => slot.date === dateISO)
+    .filter(slot => slot.date === safeDate)
     .forEach(slot => hours.push(slot.hora));
 
   (settings.weeklySlots || [])
@@ -33,14 +35,18 @@ export function getAgendaHours(Store, dateISO) {
 
   const hidden = new Set();
   (settings.hiddenDateSlots || [])
-    .filter(slot => slot.date === dateISO)
+    .filter(slot => slot.date === safeDate)
     .forEach(slot => hidden.add(slot.hora));
 
   (settings.hiddenWeeklySlots || [])
     .filter(slot => Number(slot.weekday) === weekday)
     .forEach(slot => hidden.add(slot.hora));
 
-  return sortedUnique(hours).filter(hour => !hidden.has(hour));
+  const result = sortedUnique(hours).filter(hour => !hidden.has(hour));
+
+  // Segurança para mobile/cache/localStorage antigo: se alguma configuração inválida zerar a lista,
+  // mantém os horários padrão para a agenda pública não ficar vazia sem querer.
+  return result.length ? result : [...HOURS];
 }
 
 export function addDateSlot(Store, date, hora) {
