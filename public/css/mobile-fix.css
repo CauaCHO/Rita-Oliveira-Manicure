@@ -65,9 +65,12 @@
 
   #agendaList,
   #requests,
+  #singleRequests,
+  #packageRequests,
   #clientList,
   #services,
   #clients,
+  #packages,
   #appointments {
     display: flex !important;
     flex-direction: column !important;
@@ -76,15 +79,19 @@
 
   #agendaList > .list-item,
   #requests > .list-item,
+  #singleRequests > .list-item,
+  #packageRequests > .list-item,
   #clientList > .list-item,
   #services > .list-item,
   #clients > .list-item,
+  #packages > .list-item,
   #appointments > .list-item {
     margin: 0 !important;
   }
 
   .card #services,
   .card #clients,
+  .card #packages,
   .card #appointments,
   .card .table-list,
   .card .grid,
@@ -103,6 +110,18 @@
     margin: 0 0 18px 0 !important;
   }
 
+  .modal {
+    padding: 20px !important;
+    align-items: flex-start !important;
+  }
+
+  .modal-content {
+    width: 100% !important;
+    max-height: calc(100dvh - 70px) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
   .modal-content .field {
     margin-bottom: 16px !important;
   }
@@ -110,7 +129,33 @@
   .modal-content .grid,
   .modal-content .grid-2,
   .modal-content .grid-3 {
-    gap: 0 !important;
+    gap: 14px !important;
+  }
+
+  #packageRows,
+  #adminPackageRows {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 18px !important;
+    width: 100% !important;
+  }
+
+  #packageRows > .card,
+  #adminPackageRows > .card {
+    margin: 0 !important;
+    padding: 22px !important;
+  }
+
+  #packageRows .field,
+  #adminPackageRows .field {
+    margin-bottom: 0 !important;
+  }
+
+  #packageRows select,
+  #packageRows input,
+  #adminPackageRows select,
+  #adminPackageRows input {
+    min-height: 58px !important;
   }
 
   .btn-row {
