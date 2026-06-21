@@ -6,87 +6,137 @@ function installGlassSpacingFix(){
   const style = document.createElement('style');
   style.id = 'glassSpacingFix';
   style.textContent = `
-    .admin-main > .card,
-    .admin-main > .grid,
-    .admin-main > .table-list,
-    .admin-main > section.card,
-    .container > .card,
-    .container > .hero,
-    .container > .grid,
-    .container > .table-list,
-    .container > section.card{
-      margin-bottom:18px;
+    .admin-main,
+    .container{
+      display:flex !important;
+      flex-direction:column !important;
+      gap:20px !important;
     }
 
-    .grid{
+    .admin-main > *,
+    .container > *{
+      margin-top:0 !important;
+      margin-bottom:0 !important;
+    }
+
+    .grid,
+    .table-list,
+    .time-list,
+    .service-list{
       gap:18px !important;
     }
 
-    .table-list{
-      gap:16px !important;
+    .card,
+    .hero,
+    .list-item,
+    .time-item,
+    .service-option,
+    .empty{
+      flex-shrink:0;
     }
 
-    .card .table-list,
-    .card .grid,
     .card > .list-item + .list-item,
-    #services .list-item + .list-item,
-    #clients .list-item + .list-item,
-    #appointments .list-item + .list-item,
-    #clientList .list-item + .list-item,
-    #requests .list-item + .list-item{
-      margin-top:14px;
-    }
-
-    .card{
-      margin-bottom:18px;
-    }
-
-    .list-item{
-      margin-bottom:0;
+    .card > .card + .card,
+    #services > .list-item + .list-item,
+    #clients > .list-item + .list-item,
+    #appointments > .list-item + .list-item,
+    #clientList > .list-item + .list-item,
+    #requests > .list-item + .list-item,
+    #agendaList > .list-item + .list-item{
+      margin-top:16px !important;
     }
 
     .section-title{
-      margin-top:28px !important;
-      margin-bottom:12px !important;
+      margin-top:8px !important;
+      margin-bottom:-4px !important;
+      padding-left:4px;
     }
 
     .modal-content .field + .field,
     .modal-content .grid + .field,
     .modal-content .field + .grid,
     .modal-content .grid + .grid{
-      margin-top:12px;
+      margin-top:14px !important;
     }
 
     @media(max-width:760px){
+      body{
+        padding-bottom:138px !important;
+      }
+
       .container,
       .admin-main{
-        padding-left:22px !important;
-        padding-right:22px !important;
+        width:100% !important;
+        max-width:100% !important;
+        padding:22px 24px 142px !important;
+        gap:22px !important;
+      }
+
+      .app-header{
+        padding:22px 24px 0 !important;
       }
 
       .card,
       .hero,
       .list-item,
       .time-item,
-      .service-option{
-        margin-bottom:16px;
+      .service-option,
+      .empty{
+        width:100% !important;
+        margin:0 !important;
       }
 
       .grid,
       .table-list,
       .time-list,
       .service-list{
-        gap:18px !important;
+        display:flex !important;
+        flex-direction:column !important;
+        gap:20px !important;
+        width:100% !important;
+      }
+
+      .card .grid,
+      .card .table-list,
+      .card .service-list,
+      .card .time-list{
+        gap:16px !important;
+      }
+
+      .card > .list-item,
+      #services > .list-item,
+      #clients > .list-item,
+      #appointments > .list-item,
+      #clientList > .list-item,
+      #requests > .list-item,
+      #agendaList > .list-item{
+        margin-top:0 !important;
+        margin-bottom:0 !important;
+      }
+
+      .list-item + .list-item,
+      .card + .card,
+      .hero + .card,
+      .grid + .card,
+      .card + .grid,
+      .table-list + .card,
+      .card + .table-list{
+        margin-top:0 !important;
       }
 
       .bottom-nav{
-        left:22px !important;
-        right:22px !important;
+        left:20px !important;
+        right:20px !important;
         bottom:22px !important;
+        width:auto !important;
       }
 
-      .admin-main{
-        padding-bottom:125px !important;
+      .modal{
+        padding:20px !important;
+      }
+
+      .modal-content{
+        margin:0 !important;
       }
     }
   `;
