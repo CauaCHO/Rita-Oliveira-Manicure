@@ -1,5 +1,6 @@
 import { Store } from './storage.js';
-import { $, $$, todayISO, formatDateBR, money, statusLabel, toast, HOURS } from './utils.js';
+import { $, $$, todayISO, formatDateBR, money, statusLabel, toast } from './utils.js';
+import { getAgendaHours } from './horarios-utils.js';
 
 let selectedDate = todayISO();
 let selectedHour = '';
@@ -18,8 +19,9 @@ function unavailableEntry(hour) {
 function renderTimes(){
   selectedDate = $('#dateInput').value;
   const container = $('#timeList');
-  container.innerHTML = '';
-  HOURS.forEach(hour => {
+  const hours = getAgendaHours(Store, selectedDate);
+  container.innerHTML = hours.length ? '' : '<div class="empty">Nenhum horário disponível nessa data.</div>';
+  hours.forEach(hour => {
     const ap = unavailableEntry(hour);
     const status = ap?.statusAgenda || 'disponivel';
     const isBlock = ap?.itemKind === 'block';
@@ -78,9 +80,7 @@ function updateSummary(){
   `;
 }
 
-function closeBooking(){
-  $('#bookingModal').classList.remove('open');
-}
+function closeBooking(){ $('#bookingModal').classList.remove('open'); }
 
 function syncOpenBooking(){
   renderTimes();
