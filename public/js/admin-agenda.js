@@ -1,6 +1,7 @@
 import { Store } from './storage.js';
 import { requireLogin, adminLayout } from './admin-common.js';
 import { $, todayISO, formatDateBR, money, statusLabel, toast, HOURS, whatsappLink } from './utils.js';
+import { getAgendaHours } from './horarios-utils.js';
 
 requireLogin();
 
@@ -17,26 +18,25 @@ adminLayout('agenda', `
 
   <div id="folgaModal" class="modal"><div class="modal-content"><div class="card-title"><h3>Adicionar folga</h3><button id="closeFolga" class="btn btn-light"><i class="fa-solid fa-xmark"></i></button></div><div class="field"><label>Data da folga</label><input id="fData" type="date"></div><div class="field"><label>Tipo de bloqueio</label><select id="fTipo"><option value="dia">Dia inteiro</option><option value="intervalo">Intervalo de horários</option></select></div><div id="fIntervalo" class="grid grid-2" style="display:none"><div class="field"><label>Das</label><select id="fInicio"></select></div><div class="field"><label>Até</label><select id="fFim"></select></div></div><div class="field"><label>Observação</label><input id="fObs" placeholder="Ex: compromisso, viagem, descanso"></div><button id="saveFolga" class="btn btn-primary btn-full">Salvar folga</button></div></div>
 
-  <div id="pacoteModal" class="modal"><div class="modal-content"><div class="card-title"><h3>Pacote mensal</h3><button id="closePacote" class="btn btn-light"><i class="fa-solid fa-xmark"></i></button></div><p class="muted">Em breve será atualizado para selecionar 4 mãos e 2 pés separadamente.</p><div class="grid grid-2"><div class="field"><label>Nome da cliente</label><input id="pNome" placeholder="Maria"></div><div class="field"><label>WhatsApp</label><input id="pTel" placeholder="17999999999"></div></div><div class="grid grid-2"><div class="field"><label>Data inicial</label><input id="pData" type="date"></div><div class="field"><label>Horário</label><select id="pHora"></select></div></div><div class="grid grid-2"><div class="field"><label>Serviço mão</label><select id="pMao"></select></div><div class="field"><label>Serviço pé</label><select id="pPe"></select></div></div><div class="grid grid-2"><div class="field"><label>Valor do pacote</label><input id="pValor" type="number" step="0.01" placeholder="0"></div><div class="field"><label>Pagamento</label><select id="pPagamento"><option value="pago">Pago</option><option value="pendente">Pendente</option><option value="nao_cobrado">Não cobrado</option></select></div></div><button id="savePacote" class="btn btn-primary btn-full">Criar pacote</button></div></div>
+  <div id="pacoteModal" class="modal"><div class="modal-content"><div class="card-title"><h3>Pacote mensal</h3><button id="closePacote" class="btn btn-light"><i class="fa-solid fa-xmark"></i></button></div><p class="muted">Use o pacote mensal novo no menu Adicionar.</p><button id="savePacote" class="btn btn-primary btn-full">Fechar</button></div></div>
 `);
 
 let selectedDate = todayISO();
 let editId = null;
 $('#dateInput').value = selectedDate;
 
-function addDaysISO(dateISO, days){ const d = new Date(`${dateISO}T12:00:00`); d.setDate(d.getDate() + days); return d.toISOString().slice(0,10); }
 function digits(v){ return String(v || '').replace(/\D/g,''); }
 function isBlockStatus(status){ return ['folga','ocupado','bloqueado'].includes(status); }
+function hoursFor(date = selectedDate){ return getAgendaHours(Store, date); }
+function optionsForHours(hours){ return hours.map(h=>`<option value="${h}">${h}</option>`).join(''); }
 
-function fillSelects(){
-  $('#mHora').innerHTML = HOURS.map(h=>`<option value="${h}">${h}</option>`).join('');
+function fillSelects(date = selectedDate){
+  const hours = hoursFor(date);
+  $('#mHora').innerHTML = optionsForHours(hours);
   const services = Store.listServices();
   $('#mServico').innerHTML = '<option value="">Sem serviço</option>' + services.map(s=>`<option value="${s.id}">${s.nome} - ${money(s.preco)}</option>`).join('');
-  $('#pHora').innerHTML = HOURS.map(h=>`<option value="${h}">${h}</option>`).join('');
-  $('#pMao').innerHTML = services.map(s=>`<option value="${s.id}">${s.nome}</option>`).join('');
-  $('#pPe').innerHTML = services.map(s=>`<option value="${s.id}">${s.nome}</option>`).join('');
-  $('#fInicio').innerHTML = HOURS.map(h=>`<option value="${h}">${h}</option>`).join('');
-  $('#fFim').innerHTML = HOURS.map(h=>`<option value="${h}">${h}</option>`).join('');
+  $('#fInicio').innerHTML = optionsForHours(hours);
+  $('#fFim').innerHTML = optionsForHours(hours);
 }
 
 function renderStats(){
@@ -51,8 +51,9 @@ function renderAgenda(){
   renderStats();
   const entries = Store.listDayEntries(selectedDate);
   const box = $('#agendaList');
-  box.innerHTML = '';
-  HOURS.forEach(hour=>{
+  const hours = hoursFor(selectedDate);
+  box.innerHTML = hours.length ? '' : '<div class="empty">Nenhum horário criado para essa data.</div>';
+  hours.forEach(hour=>{
     const ap = entries.find(a=>a.hora===hour && ['aguardando_confirmacao','confirmado','ocupado','folga','bloqueado','concluido'].includes(a.statusAgenda));
     const item = document.createElement('div');
     item.className='list-item';
@@ -76,9 +77,9 @@ function renderAgenda(){
 }
 
 function openModal(ap={}){
-  fillSelects(); editId = ap.id || null;
+  fillSelects(ap.data || selectedDate); editId = ap.id || null;
   $('#mData').value = ap.data || selectedDate;
-  $('#mHora').value = ap.hora || HOURS[0];
+  $('#mHora').value = ap.hora || hoursFor(ap.data || selectedDate)[0] || HOURS[0];
   $('#mNome').value = ap.clienteNome || '';
   $('#mTel').value = ap.clienteTelefone || '';
   $('#mServico').value = ap.servicoId || '';
@@ -89,28 +90,23 @@ function openModal(ap={}){
 }
 
 function openFolga(){
-  fillSelects();
+  fillSelects(selectedDate);
+  const hours = hoursFor(selectedDate);
   $('#fData').value = selectedDate;
   $('#fTipo').value = 'dia';
   $('#fIntervalo').style.display = 'none';
-  $('#fInicio').value = HOURS[0];
-  $('#fFim').value = HOURS[HOURS.length - 1];
+  $('#fInicio').value = hours[0] || HOURS[0];
+  $('#fFim').value = hours[hours.length - 1] || HOURS[HOURS.length - 1];
   $('#fObs').value = '';
   $('#folgaModal').classList.add('open');
 }
 
-function openPacote(){
-  fillSelects();
-  $('#pNome').value = ''; $('#pTel').value = ''; $('#pData').value = selectedDate; $('#pHora').value = HOURS[0]; $('#pValor').value = '';
-  const services = Store.listServices();
-  const mao = services.find(s=>String(s.nome).toLowerCase().includes('mão')) || services[0];
-  const pe = services.find(s=>String(s.nome).toLowerCase().includes('pé')) || services[1] || services[0];
-  if(mao) $('#pMao').value = mao.id; if(pe) $('#pPe').value = pe.id;
-  $('#pacoteModal').classList.add('open');
-}
+function openPacote(){ $('#pacoteModal').classList.add('open'); }
 
 $('#manualBtn').onclick=()=>openModal({data:selectedDate,statusAgenda:'confirmado'});
 $('#folgaBtn').onclick=openFolga;
+$('#fData').onchange=()=>fillSelects($('#fData').value);
+$('#mData').onchange=()=>fillSelects($('#mData').value);
 $('#fTipo').onchange=()=>{ $('#fIntervalo').style.display = $('#fTipo').value === 'intervalo' ? 'grid' : 'none'; };
 $('#closeFolga').onclick=()=>$('#folgaModal').classList.remove('open');
 $('#saveFolga').onclick=()=>{
@@ -120,12 +116,12 @@ $('#saveFolga').onclick=()=>{
   const inicio = $('#fInicio').value;
   const fim = $('#fFim').value;
   const observacao = $('#fObs').value.trim() || (tipo === 'dia' ? 'Dia marcado como folga' : `Folga das ${inicio} às ${fim}`);
-  let horas = [...HOURS];
+  let horas = hoursFor(data);
   if(tipo === 'intervalo'){
-    const i = HOURS.indexOf(inicio);
-    const f = HOURS.indexOf(fim);
+    const i = horas.indexOf(inicio);
+    const f = horas.indexOf(fim);
     if(i < 0 || f < 0 || i > f) return toast('Escolha um intervalo válido.');
-    horas = HOURS.slice(i, f + 1);
+    horas = horas.slice(i, f + 1);
   }
   let count = 0;
   horas.forEach(hora=>{
@@ -142,6 +138,7 @@ $('#saveFolga').onclick=()=>{
 };
 $('#pacoteBtn').onclick=openPacote;
 $('#closePacote').onclick=()=>$('#pacoteModal').classList.remove('open');
+$('#savePacote').onclick=()=>$('#pacoteModal').classList.remove('open');
 $('#closeModal').onclick=()=>$('#modal').classList.remove('open');
 $('#dateInput').onchange=renderAgenda;
 $('#saveManual').onclick=()=>{
@@ -155,20 +152,6 @@ $('#saveManual').onclick=()=>{
     }
     $('#modal').classList.remove('open');selectedDate=$('#mData').value;$('#dateInput').value=selectedDate;renderAgenda();toast('Registro salvo.');
   }catch(err){toast(err.message || 'Erro ao salvar.');}
-};
-$('#savePacote').onclick=()=>{
-  const nome = $('#pNome').value.trim(); const tel = digits($('#pTel').value); const start = $('#pData').value; const hora = $('#pHora').value;
-  if(!nome || !tel || !start || !hora) return toast('Informe cliente, WhatsApp, data e horário.');
-  const mao = Store.getService($('#pMao').value); const pe = Store.getService($('#pPe').value);
-  const valorPacote = Number($('#pValor').value || 0); const pagamento = $('#pPagamento').value;
-  const datas = [0,7,14,21].map(d=>addDaysISO(start,d));
-  if(datas.some(data=>Store.hasTimeConflict(data,hora))) return toast('Existe conflito em uma das semanas do pacote.');
-  const pacoteId = `pac_${Date.now()}`;
-  datas.forEach((data,i)=>{
-    const comPe = i === 0 || i === 2;
-    Store.saveAppointment({data,hora,clienteNome:nome,clienteTelefone:tel,servicoId:comPe?`${mao?.id}_${pe?.id}`:mao?.id,servicoNome:comPe?`${mao?.nome || 'Mão'} + ${pe?.nome || 'Pé'}`:(mao?.nome || 'Mão'),valor:i===0?valorPacote:0,duracaoMinutos:60,statusAgenda:'confirmado',statusPagamento:i===0?pagamento:'nao_cobrado',observacao:i===0?'Pacote mensal: 4 mãos + 2 pés':'Incluso no pacote mensal',origem:'pacote',pacoteId});
-  });
-  $('#pacoteModal').classList.remove('open'); selectedDate = start; $('#dateInput').value = start; renderAgenda(); toast('Pacote criado.');
 };
 window.addEventListener('db:update', renderAgenda);
 renderAgenda();
